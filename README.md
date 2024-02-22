@@ -1,8 +1,8 @@
 ## Objectifs 
-- script qui automatise absolument tout
-- scripts intermédiaires
+- [ ] script qui automatise absolument tout
+- [ ] scripts intermédiaires
 
 
-- Installer docker sur odoo
-- postgres installé en natif sur postgres
-- copie des fichiers de sauvegarde postgres sur sauvegardes
+- [X] Installer docker sur odoo
+- [X] postgres installé en natif sur postgres
+- [X] copie des fichiers de sauvegarde postgres sur sauvegardes
