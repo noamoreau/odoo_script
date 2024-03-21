@@ -14,5 +14,6 @@ fi
 ssh-copy-id dattier.iutinfo.fr
 
 scp ../dattier/creation-vm.sh dattier.iutinfo.fr:$HOME
+scp ../dattier/changer-ip.sh dattier.iutinfo.fr:$HOME
 
 ssh dattier.iutinfo.fr 'chmod u+x creation-vm.sh && ./creation-vm.sh'
