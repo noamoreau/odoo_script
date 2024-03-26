@@ -27,7 +27,7 @@ do
 
   ssh-copy-id "${liste_fichier_ip[$i]}"
 
-  ssh "${liste_fichier_ip[$i]}" 'su -c "apt-get upgrade -y && apt-get install -y sudo"'
+  ssh "${liste_fichier_ip[$i]}" 'su -c "apt-get -y update && apt -y full-upgrade && apt-get install -y sudo"'
   ssh "${liste_fichier_ip[$i]}" 'su --login -c "adduser user sudo"'
   ssh "${liste_fichier_ip[$i]}" 'su --login -c "reboot"'
   echo "Redémarrage de la vm après installation des commandes"
