@@ -17,17 +17,25 @@ scp ../dattier/creation-vm.sh dattier.iutinfo.fr:$HOME
 
 ssh dattier.iutinfo.fr 'chmod u+x creation-vm.sh && ./creation-vm.sh'
 
-ip_odoo=$(ssh dattier.iutinfo.fr 'cat ip_odoo')
+liste_fichier_ip=("odoo1" "postgres1" "sauvegardes1")
 
-echo "$ip_odoo"
+for i in 0 1 2
+do
+  ip=$(ssh dattier.iutinfo.fr 'cat ip_'${liste_fichier_ip[$i]})
+  #ssh dattier.iutinfo.fr 'echo ip_${liste_fichier_ip[$i]}'
+  echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier" >> $HOME/.ssh/config
 
-echo -e "\nHost odoo1\n\tHostname $ip_odoo\n\tuser user\n\tProxyJump dattier" >> $HOME/.ssh/config
+  ssh-copy-id "${liste_fichier_ip[$i]}"
 
-ssh-copy-id odoo1
+  ssh "${liste_fichier_ip[$i]}" 'su -c "apt-get upgrade -y && apt-get install -y sudo"'
+  ssh "${liste_fichier_ip[$i]}" 'su --login -c "adduser user sudo"'
+  ssh "${liste_fichier_ip[$i]}" 'su --login -c "reboot"'
+  echo "Redémarrage de la vm après installation des commandes"
+  sleep 10s
+  ssh "${liste_fichier_ip[$i]}" "su --login -c 'hostnamectl set-hostname ${liste_fichier_ip[$i]}'"
+  ssh "${liste_fichier_ip[$i]}" "sudo -S sed -i 's/iface enp0s3 inet dhcp/iface enp0s3 inet static\n\taddress 10.42.124.$(($i+1))\/16\n\tgateway 10.42.0.1/g' /etc/network/interfaces && sudo -S reboot"
+  sed -i s/$ip/10.42.124.$(($i+1))/g $HOME/.ssh/config
+done
 
-scp ../dattier/changer-ip.sh odoo1:.
-
-ssh odoo1 'chmod u+x changer-ip.sh && ./changer-ip.sh 10.42.124.1 odoo1'
-
-echo "terminado"
-
+chmod u+x ../postgres/setup-postgres.sh
+../postgres/setup-postgres.sh

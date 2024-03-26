@@ -1,0 +1,16 @@
+for i in 0 1 2
+do
+  ip=$(ssh dattier.iutinfo.fr 'cat ip_${liste_fichier_ip[$i]}')
+  ssh dattier.iutinfo.fr 'echo ip_${liste_fichier_ip[$i]}'
+  echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier" >> $HOME/.ssh/config
+
+  ssh-copy-id "${liste_fichier_ip[$i]}"
+
+  ssh "${liste_fichier_ip[$i]}" 'su -c "apt-get upgrade -y && apt-get install -y sudo"'
+  ssh "${liste_fichier_ip[$i]}" 'su --login -c "adduser user sudo"'
+  ssh "${liste_fichier_ip[$i]}" 'su --login -c "reboot"'
+  echo "Redémarrage de la vm après installation des commandes"
+  sleep 10s
+  ssh "${liste_fichier_ip[$i]}" "sudo -S sed -i 's/iface enp0s3 inet dhcp/iface enp0s3 inet static\n\taddress 10.42.124.$i\/16\n\tgateway 10.42.0.1/g' /etc/network/interfaces && sudo -S reboot"
+
+done
