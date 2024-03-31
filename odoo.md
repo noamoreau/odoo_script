@@ -257,7 +257,7 @@ Créer un fichier `odoo.conf` dans le dossier `~/odoo` :
 
 ```conf
 [options]
-[options]
+addons_path = /mnt/extra-addons
 db_user = odoo
 db_password = odoo
 db_host = 10.42.162.2
@@ -265,7 +265,7 @@ db_name = odoo
 db_template = template0
 proxy_mode = True
 ```
-
+> `addons_path` : réglage pour que odoo vérifie ce dossier lors de la mise a jour de la liste des addons
 > `db_user` : réglage pour que odoo se connecte en temps que ce user dans psql
 > `db_password` : réglage pour que odoo se connecte en utilisant ce mot de passe dans psql
 > `db_host` : réglage pour que odoo se connecte sur le psql de cette addresse
@@ -298,7 +298,7 @@ cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
 mkcert -install
 ```
 
-Dans le dossier traefik on créer le dossier
+Dans le dossier `~/traefik/` on créer le dossier
 
 - certs qui contient tout les certificats
 - conf qui contient tout les fichiers de conf
@@ -315,7 +315,7 @@ mkcert -cert-file certs/local-cert.pem -key-file certs/local-key.pem "*.<phys>.i
 
 cela permet d'avoir un certificat pour foo.<phys>.iutinfo.fr , bar.<phys>.iutinfo.fr , etc
 
-Créer le fichier de conf statique `traefik.yml` dans le dossier `conf`
+Créer le fichier de conf statique `traefik.yml` dans le dossier ``~/traefik/conf/`
 
 ```yml
 global:
@@ -367,7 +367,7 @@ entryPoints:
 > `to` la cible de la redirection
 > `scheme` réglage pour le schema de l'url (https://)
 
-Créer le fichier de conf dynamique `config.yml` dans le dossier `conf`
+Créer le fichier de conf dynamique `config.yml` dans le dossier `~/traefik/conf/`
 
 ```yml
 http:
@@ -391,7 +391,7 @@ tls:
 > `main` le domaine "principale"
 > `sans` les sous domaines
 
-Créer le fichier `docker-compose.yml`
+Créer le fichier `docker-compose.yml` dans le dossier `~/traefik/`
 
 ```yml
 services:
@@ -415,7 +415,7 @@ networks:
     external: true
 ```
 
-Dans le fichier `docker-compose.yml` de odoo
+Dans le fichier `docker-compose.yml` dans le dossier `~/odoo/`
 
 ```yml
 version: '3.3'
@@ -438,3 +438,32 @@ networks:
   proxy:
    external: true
 ```
+
+
+## Installer des addons
+Télécharger l'addon voulu dans le dossier `~/odoo/addons/`
+```sh
+wget https://apps.odoo.com/loempia/download/<nom technique du module>/<version de odoo>/<nom technique du module>.zip
+```
+
+Ensuite dézipper le dossier 
+Pour cela vous devez avoir unzip 
+```sh
+apt install unzip
+```
+Pour dezipper
+```sh
+unzip <le fichier en zip>
+```
+
+Maintenant lancer l'instance de odoo 
+(depuis le dossier `~/odoo/`)
+```sh
+docker-compose up -d 
+```
+
+Allez sur la page de odoo connectez vous en admin (admin:admin)
+Puis activer un addons de base pour pouvoir ensuite activer le mode développeur 
+Pour cela allez dans la page settings puis tout en bas `activer le mode développeur`
+Pour retourner sur la page des addons et `cliquez sur mise a jour de la liste`
+Maintenant dans la liste des addons a activer vous devrez voir le addon télécharger 

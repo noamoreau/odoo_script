@@ -70,8 +70,7 @@ crontab -e
 ```
 ```sh
 # m h  dom mon dow   command
-0 0 * * * pg_dump test > /var/lib/postgresql/test.sql
-```
+0 0 * * * pg_dumpall > /var/lib/postgresql/testfile
 
 ### Copier le dump sur sauvegardes
 
@@ -115,9 +114,7 @@ Sur la machine postgres :
 su - postgres
 rsync user@10.42.124.3:/home/user/test .
 dropdb test 
-createdb -T template0 test
-psql -c "ALTER DATABASE test OWNER TO odoo"
-psql test < testfile
+psql -f testfile
 ```
 
 Vérification, retourner sur firefox et taper `http://localhost:8080/web/login` dans la barre d'adresse.
