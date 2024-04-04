@@ -1,12 +1,12 @@
 #!/bin/bash
 
-echo "stop les vm"
+echo -e "${bleu_clair}Arrêt des VMs${reset}"
 vmiut stop odoo1 postgres1 sauvegardes1
-echo "rm les vm"
+echo -e "${bleu_clair}Suppression des VMs${reset}"
 vmiut rm odoo1 postgres1 sauvegardes1
-echo "création des vm"
+echo -e "${bleu_clair}Création des VMs${reset}"
 vmiut creer odoo1 postgres1 sauvegardes1
-echo "start des vm"
+echo -e "${bleu_clair}Démarrage des VMs${reset}"
 vmiut start odoo1 postgres1 sauvegardes1
 
 sleep 30s
