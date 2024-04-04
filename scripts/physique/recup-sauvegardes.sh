@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ -n $(./sshpass -p user ssh virt 'vmiut list|grep "sauvegardes"') ]]; then
+if [[ -n $(ssh virt 'vmiut list|grep "sauvegardes"') ]]; then
     while([ "$reponse" != "y" ] && [ "$reponse" != "n" ])
     do read -p "Souhaitez-vous récuperer la dernière sauvegarde ? (y/n) : " reponse
         clear
