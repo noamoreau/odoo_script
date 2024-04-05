@@ -69,7 +69,7 @@ ssh odoo1 "mkdir ~/traefik/{conf,certs}"
 ssh odoo1 './$(ls ~|grep mkcert) -cert-file ~/traefik/certs/local-cert.pem -key-file ~/traefik/certs/local-key.pem "*.'$(hostname)'.iutinfo.fr"'
 cp ./template_traefik.yml ./traefik.yml
 sed "s/@/$(hostname)/g" ./template_traefik.yml > ./traefik.yml 
-scp ./template_traefik.yml odoo1:~/traefik/conf/traefik.yml
+scp ./traefik.yml odoo1:~/traefik/conf/traefik.yml
 
 ssh odoo1 'cat <<EOF > ~/traefik/conf/config.yml
 services:

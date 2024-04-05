@@ -6,7 +6,7 @@ api:
 
 providers:
   docker:
-    defaultRule: "Host(`{{ .ContainerName }}.if08.iutinfo`)"
+    defaultRule: "Host(`{{ .ContainerName }}.@.iutinfo`)"
     endpoint: "unix:///var/run/docker.sock"
     watch: true
     exposedByDefault: false
