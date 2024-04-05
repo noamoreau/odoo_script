@@ -64,7 +64,7 @@ ssh odoo1 "sudo -S bash -c 'chmod u+x $(ls ~|grep mkcert)'"
 ssh odoo1 "sudo -S bash -c './$(ls ~|grep mkcert) -install'"
 
 ssh odoo1 "mkdir ~/traefik/{conf,certs}"
-ssh odoo1 './$(ls ~|grep mkcert) -cert-file ~/traefik/certs/local-cert.pem -key-file ~/traefik/certs/local-key.pem "*.<phys>.iutinfo.fr"'
+ssh odoo1 './$(ls ~|grep mkcert) -cert-file ~/traefik/certs/local-cert.pem -key-file ~/traefik/certs/local-key.pem "*.'$(hostname)'.iutinfo.fr"'
 ssh odoo1 'cat <<EOF > ~/traefik/conf/traefik.yml
 global:
   sendAnonymousUsage: false
@@ -74,7 +74,7 @@ api:
 
 providers:
   docker:
-    defaultRule: "Host(`{{ .ContainerName }}.<phys>.iutinfo`)"
+    defaultRule: "Host(`{{ .ContainerName }}.'$(hostname)'.iutinfo`)"
     endpoint: "unix:///var/run/docker.sock"
     watch: true
     exposedByDefault: false
