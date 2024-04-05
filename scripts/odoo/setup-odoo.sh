@@ -2,17 +2,17 @@
 
 echo -e "${bleu_clair}Configuration d'odoo1...${reset}"
 
-../physique/sshpass -p user ssh odoo1 "su --login -c 'apt-get install -y docker-compose unzip'"
-../physique/sshpass -p user ssh odoo1 'sudo -S "adduser user docker"'
-../physique/sshpass -p user ssh odoo1 'cat <<EOF > /etc/docker/daemon.json
+ssh odoo1 "su --login -c 'apt-get install -y docker-compose unzip curl'"
+ssh odoo1 'su --login -c "adduser user docker"'
+ssh odoo1 'sudo -S cat <<EOF > /etc/docker/daemon.json
 {
 "registry-mirrors": ["http://172.18.48.9:5000"],
 "default-address-pools": [{ "base": "172.20.0.0/16", "size": 24 }]
 }
 EOF'
 
-../physique/sshpass -p user ssh odoo1 "mkdir $HOME/odoo"
-../physique/sshpass -p user ssh odoo1 "cat <<EOF > $HOME/odoo/docker-compose.yml
+ssh odoo1 "mkdir ~/odoo"
+ssh odoo1 "cat <<EOF > ~/odoo/docker-compose.yml
 version: '3.3'
 services:
   odoo:
@@ -34,8 +34,8 @@ networks:
    external: true
 EOF"
 
-../physique/sshpass -p user ssh odoo1 "mkdir $HOME/traefik"
-../physique/sshpass -p user ssh odoo1 "cat <<EOF > $HOME/traefik/docker-compose.yml
+ssh odoo1 "mkdir ~/traefik"
+ssh odoo1 "cat <<EOF > ~/traefik/docker-compose.yml
 version: '3.3'
 services:
   traefik:
@@ -58,13 +58,14 @@ networks:
     external: true
 EOF"
 
-../physique/sshpass -p user odoo1 "sudo -S curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"'"
-../physique/sshpass -p user odoo1 "sudo -S 'cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert'"
-../physique/sshpass -p user odoo1 "sudo -S 'mkcert -install'"
+ssh odoo1 "curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64""
+ssh odoo1 "sudo -S bash -c 'echo $(ls ~|grep mkcert)'"
+ssh odoo1 "sudo -S bash -c 'chmod u+x $(ls ~|grep mkcert)'"
+ssh odoo1 "sudo -S bash -c './$(ls ~|grep mkcert) -install'"
 
-../physique/sshpass -p user ssh odoo1 "mkdir $HOME/traefik/{conf, certs}"
-../physique/sshpass -p user ssh odoo1 'mkcert -cert-file $HOME/traefik/certs/local-cert.pem -key-file $HOME/traefik/certs/local-key.pem "*.<phys>.iutinfo.fr"'
-../physique/sshpass -p user ssh odoo1 'cat <<EOF > $HOME/traefik/conf/traefik.yml
+ssh odoo1 "mkdir ~/traefik/{conf,certs}"
+ssh odoo1 './$(ls ~|grep mkcert) -cert-file ~/traefik/certs/local-cert.pem -key-file ~/traefik/certs/local-key.pem "*.<phys>.iutinfo.fr"'
+ssh odoo1 'cat <<EOF > ~/traefik/conf/traefik.yml
 global:
   sendAnonymousUsage: false
 
@@ -99,7 +100,7 @@ entryPoints:
 EOF
 '
 
-../physique/sshpass -p user ssh odoo1 'cat <<EOF > $HOME/traefik/conf/config.yml
+ssh odoo1 'cat <<EOF > ~/traefik/conf/config.yml
 services:
   traefik:
     image: traefik:v3.0

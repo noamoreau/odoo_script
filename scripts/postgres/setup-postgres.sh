@@ -17,10 +17,13 @@ ssh postgres1 "su --login postgres -c 'createuser --interactive --pwprompt --cre
 
 #ssh postgres1 "su --login postgres -c 'pg_dump > backup-odoo.sql'"
 today=$(date '+%Y-%m-%d')
-premiercron="echo '0 0 * * * pg_dumpall > /var/lib/postgresql/$today'"
-deuxiemecron="echo '1 0 * * * rsync postgres@10.42.124.2:/var/lib/postgresql/test.sql /home/user/test'"
+premiercron="'0 0 * * * pg_dumpall > /var/lib/postgresql/$today'"
+deuxiemecron="'1 0 * * * rsync postgres@10.42.124.2:/var/lib/postgresql/test.sql /home/user/test'"
 
-ssh postgres1 "sudo -S '(crontab -l 2>/dev/null; '$premiercron') | crontab -'"
-ssh sauvegardes1 "sudo -S '(crontab -l 2>/dev/null; '$deuxiemecron') | crontab -'"
+ssh postgres1 'echo "$((crontab -l 2>/dev/null; echo "'"$premiercron"'") | crontab -)"'
+
+ssh sauvegardes1 'echo "$((crontab -l 2>/dev/null; echo "'"$deuxiemecron"'") | crontab -)"'
 
 echo -e "${bleu_clair}Configuration de postgres1 terminée${reset}"
+
+
