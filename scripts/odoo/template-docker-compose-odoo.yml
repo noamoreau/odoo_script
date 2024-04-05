@@ -1,0 +1,19 @@
+version: '3.3'
+services:
+  odoo:
+    image: odoo
+    container_name: odoo
+    volumes:
+      - ./odoo.conf:/etc/odoo/odoo.conf
+      - ./addons:/mnt/extra-addons
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.odoo.tls=true
+
+networks:
+  proxy:
+    external: true

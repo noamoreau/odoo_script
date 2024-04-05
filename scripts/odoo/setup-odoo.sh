@@ -13,28 +13,10 @@ EOF'
 
 ssh odoo1 'su --login -c "cp /home/user/daemon.json /etc/docker/daemon.json"'
 
-ssh odoo1 "mkdir ~/odoo"
-ssh odoo1 "cat <<EOF > ~/odoo/docker-compose.yml
-version: '3.3'
-services:
-  odoo:
-    image: odoo
-    container_name: odoo
-    volumes:
-      - ./odoo.conf:/etc/odoo/odoo.conf
-      - ./addons:/mnt/extra-addons
-    networks:
-      - proxy
-    security_opt:
-      - no-new-privileges:true
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.odoo.tls=true
-
-networks:
-  proxy:
-   external: true
-EOF"
+chmod 777 template-docker-compose-odoo.yml
+scp template-docker-compose-odoo.yml odoo1:$HOME
+chmod 700 ajout-client.sh
+./ajout-client.sh
 
 ssh odoo1 "mkdir ~/traefik"
 ssh odoo1 "cat <<EOF > ~/traefik/docker-compose.yml
