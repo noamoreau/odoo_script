@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# menu 1. tout reinstall perdre données 2. Ajouter un client 3. Récupérer backup 4. installer addon
-
-# verif ssh config
-# demander si remplace = tout perdre 
 esc='\e'
 rouge_fonce=${esc}'[91m'
 bleu_clair=${esc}'[94m'
 jaune_clair=${esc}'[33m'
 reset=${esc}'[0m'
+
 if [[ ! -f "./sshpass" ]]
 then
   ./install-sshpass.sh
