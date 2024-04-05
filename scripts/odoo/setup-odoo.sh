@@ -4,12 +4,14 @@ echo -e "${bleu_clair}Configuration d'odoo1...${reset}"
 
 ssh odoo1 "su --login -c 'apt-get install -y docker-compose unzip curl'"
 ssh odoo1 'su --login -c "adduser user docker"'
-ssh odoo1 'sudo -S cat <<EOF > /etc/docker/daemon.json
+ssh odoo1 'cat <<EOF > ~/daemon.json
 {
 "registry-mirrors": ["http://172.18.48.9:5000"],
 "default-address-pools": [{ "base": "172.20.0.0/16", "size": 24 }]
 }
 EOF'
+
+ssh odoo1 'su --login -c "cp /home/user/daemon.json /etc/docker/daemon.json"'
 
 ssh odoo1 "mkdir ~/odoo"
 ssh odoo1 "cat <<EOF > ~/odoo/docker-compose.yml
@@ -59,46 +61,15 @@ networks:
 EOF"
 
 ssh odoo1 "curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64""
-ssh odoo1 "sudo -S bash -c 'echo $(ls ~|grep mkcert)'"
-ssh odoo1 "sudo -S bash -c 'chmod u+x $(ls ~|grep mkcert)'"
-ssh odoo1 "sudo -S bash -c './$(ls ~|grep mkcert) -install'"
+ssh odoo1 'sudo -S bash -c "echo $(ls ~|grep mkcert)"'
+ssh odoo1 'sudo -S bash -c "chmod u+x $(ls ~|grep mkcert)"'
+ssh odoo1 'sudo -S bash -c "./$(ls ~|grep mkcert) -install"'
 
 ssh odoo1 "mkdir ~/traefik/{conf,certs}"
 ssh odoo1 './$(ls ~|grep mkcert) -cert-file ~/traefik/certs/local-cert.pem -key-file ~/traefik/certs/local-key.pem "*.'$(hostname)'.iutinfo.fr"'
-ssh odoo1 'cat <<EOF > ~/traefik/conf/traefik.yml
-global:
-  sendAnonymousUsage: false
-
-api:
-  dashboard: true
-
-providers:
-  docker:
-    defaultRule: "Host(`{{ .ContainerName }}.'$(hostname)'.iutinfo`)"
-    endpoint: "unix:///var/run/docker.sock"
-    watch: true
-    exposedByDefault: false
-
-  file:
-    filename: /etc/traefik/config.yml
-    watch: true
-
-log:
-  level: INFO
-  format: common
-
-entryPoints:
-  http:
-    address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: https
-          scheme: https
-  https:
-    address: ":443"
-EOF
-'
+cp ./template_traefik.yml ./traefik.yml
+sed "s/@/$(hostname)/g" ./template_traefik.yml > ./traefik.yml 
+scp ./template_traefik.yml odoo1:~/traefik/conf/traefik.yml
 
 ssh odoo1 'cat <<EOF > ~/traefik/conf/config.yml
 services:
@@ -120,6 +91,7 @@ services:
 networks:
   proxy:
     external: true
-EOF'
+EOF
+'
 
 echo -e "${bleu_clair}Configuration d'odoo1 terminée${reset}"
