@@ -1,5 +1,12 @@
 #!/bin/bash
 
+esc='\e'
+rouge_fonce=${esc}'[91m'
+bleu_clair=${esc}'[94m'
+jaune_clair=${esc}'[33m'
+reset=${esc}'[0m'
+
+
 echo -e "${bleu_clair}Arrêt des VMs${reset}"
 vmiut stop odoo1 postgres1 sauvegardes1
 echo -e "${bleu_clair}Suppression des VMs${reset}"

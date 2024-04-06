@@ -1,5 +1,11 @@
 #!/bin/bash
 
+esc='\e'
+rouge_fonce=${esc}'[91m'
+bleu_clair=${esc}'[94m'
+jaune_clair=${esc}'[33m'
+reset=${esc}'[0m'
+
 echo -e "${bleu_clair}Configuration d'odoo1...${reset}"
 
 ssh odoo1 "su --login -c 'apt-get install -y docker-compose unzip curl'"
@@ -13,10 +19,10 @@ EOF'
 
 ssh odoo1 'su --login -c "cp /home/user/daemon.json /etc/docker/daemon.json"'
 
-chmod 777 template-docker-compose-odoo.yml
-scp template-docker-compose-odoo.yml odoo1:$HOME
-chmod 700 ajout-client.sh
-./ajout-client.sh
+#chmod 777 template-docker-compose-odoo.yml
+#scp template-docker-compose-odoo.yml odoo1:~/
+#chmod 700 ajout-client.sh
+#./ajout-client.sh
 
 ssh odoo1 "mkdir ~/traefik"
 ssh odoo1 "cat <<EOF > ~/traefik/docker-compose.yml
@@ -43,7 +49,6 @@ networks:
 EOF"
 
 ssh odoo1 "curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64""
-ssh odoo1 'sudo -S bash -c "echo $(ls ~|grep mkcert)"'
 ssh odoo1 'sudo -S bash -c "chmod u+x $(ls ~|grep mkcert)"'
 ssh odoo1 'sudo -S bash -c "./$(ls ~|grep mkcert) -install"'
 

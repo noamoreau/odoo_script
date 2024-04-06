@@ -5,6 +5,7 @@ rouge_fonce=${esc}'[91m'
 bleu_clair=${esc}'[94m'
 jaune_clair=${esc}'[33m'
 reset=${esc}'[0m'
+
 if [[ ! -f "./sshpass" ]]
 then
   ./install-sshpass.sh
@@ -55,23 +56,21 @@ do
     done
     if ([ "$reponse" == "y" ])
     then
-        cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier\n|g" | tr "@" "\n" | tr "&" "\t" > ~/.ssh/config
+        cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_fichier_ip[$i]}@&Hostname $ip\@&user user@&ProxyJump dattier@|g" | tr "@" "\n" | tr "&" "\t" > ~/.ssh/config
     fi
   else
-
     echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier" >> ~/.ssh/config
   fi
 
-  ssh-copy-id "${liste_fichier_ip[$i]}"
-
+  ./sshpass -p user ssh-copy-id -o "StrictHostKeyChecking no" "${liste_fichier_ip[$i]}"
+  echo -e "${jaune_clair}Configuration de base de la vm ${liste_fichier_ip[$i]}${reset}"
   ssh "${liste_fichier_ip[$i]}" 'echo root | su -c "apt-get -y update && apt -y full-upgrade && apt-get install -y sudo"'
   ssh "${liste_fichier_ip[$i]}" 'echo root |su --login -c "adduser user sudo"'
   ssh "${liste_fichier_ip[$i]}" 'echo root |su --login -c "reboot"'
   echo -e "${bleu_clair}Redémarrage de la vm ${liste_fichier_ip[$i]} après installation des commandes de base${reset}"
   sleep 10s
   ssh "${liste_fichier_ip[$i]}" "echo root |su --login -c 'hostnamectl set-hostname ${liste_fichier_ip[$i]}'"
-  ssh "${liste_fichier_ip[$i]}" "echo user |sudo -S sed -i 's/iface enp0s3 inet dhcp/iface enp0s3 inet static\n\taddress 10.42.124.$(($i+1))\/16\n\tgateway 10.42.0.1/g' /etc/network/interfaces && sudo -S reboot"
-  echo "toto"
+  ssh "${liste_fichier_ip[$i]}" "echo user |sudo -S sed -i 's/iface enp0s3 inet dhcp/iface enp0s3 inet static\n\taddress 10.42.124.$(($i+1))\/16\n\tgateway 10.42.0.1/g' /etc/network/interfaces && echo user|sudo -S reboot"
   sed -i s/$ip/10.42.124.$(($i+1))/g ~/.ssh/config
 done
 

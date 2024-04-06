@@ -1,5 +1,12 @@
 #!/bin/bash
 
+esc='\e'
+rouge_fonce=${esc}'[91m'
+bleu_clair=${esc}'[94m'
+jaune_clair=${esc}'[33m'
+reset=${esc}'[0m'
+
+
 echo -e "${bleu_clair}Configuration de postgres1...${reset}"
 
 ssh postgres1 "echo root|su --login -c 'apt-get install -y postgresql rsync'"
