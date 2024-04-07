@@ -1,8 +1,5 @@
 # Documentation des scripts
 
-Table des matières
-
-
 ## Organisation des fichiers
 
 - `install-a-la-main` : les trace écrite des installations à la main (faites en découverte de la saé) 
@@ -12,12 +9,14 @@ Table des matières
 
 Nous avons trois machines virtuelles : 
 - `odoo1` : avec un docker pour traefik et un docker odoo par client. 
+- `postgres1` : avec postgres pour stocker les bases des instances de odoo. 
+- `sauvegardes1` : Qui contient juste le backup quotidien. 
 
 Les machines odoo, postgres et sauvegardes portent toutes un "1" car nous souhaitions conserver les machines sur lesquelles nous avions fait les installations manuellement. Dans un contexte professionnel nous aurions retiré le chiffre.
 
 Le texte apparaissant en jaune signifie qu'une intervention de l'utilisateur est requise, en bleu clair un message d'état, en rouge un choix important. 
 
-## Déroulement des scripts
+## Deroulement des scripts
 
 ### main.sh
 Le script initial est [main.sh](./scripts/main/main.sh) . Ce script lance le menu principal, les choix sont :
@@ -51,7 +50,7 @@ De retour sur [init-all.sh](./scripts/main/init-all.sh) , les configurations de 
 
 Le script va d'abord détecter s'il existe un alias dans `.ssh/config` pour la machine et laisser le choix à l'utilisateur de réécrire dessus où de le laisser.
 
-La clef publique de l'utilisateur va être partagée sur la machine virtuelle. Avec l'option `StrictHostKeyChecking no` pour ne pas déclencher le message nous demandant confirmation sur le hash de la clef.
+Avec l'option `StrictHostKeyChecking no` nous ne vérifions pas l'empreinte du serveur.
 
 La machine est mise à jouur puis `sudo` est installé.
 
@@ -76,7 +75,7 @@ Installation de rsync.
 
 Modification des fichiers `pg_hba.conf` et `postgresql.conf` avec un `sed` pour autoriser les connexions de l'extérieur.
 
-Modification du mot de passe (`passwd`) de l'utilisateur postgres pour éviter des erreur par la suite.
+Modification du mot de passe (`chpasswd`) de l'utilisateur postgres pour éviter des erreur par la suite.
 
 Configuration du premier `crontab` sur la machine postgres1 pour créer le `dump` de la base de données. Puis configuration du second sur la machine sauvegardes1 pour récupérer le `dump`. Le crontab est géré de manière non-interactive en redirigeant l'erreur "no crontab for postgres" vers `/dev/null`.
 
@@ -88,12 +87,34 @@ Sur la machine sauvegardes1.
 
 `rsync` est installé.
 
-Puis une clef est générée et partagée sur la machine postgres1 pour permettre le rsync.
+Puis une clef est générée et partagée sur la machine postgres1 pour permettre le rsync en non interactif.
 
 `setup-sauvegardes.sh` est fini `init-all.sh` reprend la main et lance [setup-odoo.sh](./scripts/odoo/setup-odoo.sh)
 
 #### setup-odoo.sh
 
+Sur la machine odoo1
+
+Installations de docker-compose , unzip et curl
+
+Ajout de l'utilisateur user dans le groupe docker
+Création du fichier daemon.json pour ajouter le miroir de l'IUT et corriger la base de sous réseaux utilisés (pour ne pas entrer en conflit avec le réseau de l'IUT)
+
+Création du docker-compose 
+Traefik est sur un réseau pour qu'il puisse detecter tout les containers de ce réseau
+
+On télécharge le binaire de mkcert via curl 
+on créer un certificat d'authorité 
+ensuite on creer les certificats des noms domaines *.<phys>.locahost
+> **Note** : Pour des raisons nous dépassant le domaine en .iutinfo.fr ne fonctionne pas, nous avons donc utilisé .localhost
+
+On copie le template de traefik.yml qui la config statique 
+Et on modifie pour que l'url pour acceder au dashboard soit <nom du container>.<phys>.localhost
+
+On copie le template de config.yml qui la config dynamique 
+Et on modifie pour que l'url pour acceder au dashboard soit traefik.<phys>.localhost
+
+On copie le template du docker-compose de odoo pour me script [ajout-client.sh](./scripts/odoo/ajout-client.sh)
 
 
 ##### ajout-client.sh
@@ -102,7 +123,7 @@ Le script [ajout-client.sh](./scripts/odoo/ajout-client.sh) est lancé. Le scrip
 
 L'utilisateur doit d'abord renseigner le nom du client et la version d'odoo à installer. Ces information sont respectivement stockées dans des variables mais aussi dans le fichier `$HOME/client-version` utile à l'installation de traefik et des addons odoo. 
 
-Sur postrges1, un nouvel utilisateur au nom du client est créé en l'ajoutant au fichier `pg_hba.conf` et en le créant sur psql. Ajouter le mot de passe d'un utilisateur postgres n'étant pas possible en non-interactif nous avons créé un fichier [changer_mdp.sql](./scripts/odoo/changer_mdp.sql) dans lequel nous insérons le nom du client pour l'utiliser comme mot de passe. Il s'agit de la solution que nous avons trouvé pour controurner ce problème.
+Sur postgres1, un nouvel utilisateur au nom du client est créé en l'ajoutant au fichier `pg_hba.conf` et en le créant via le commande psql. Ajouter le mot de passe d'un utilisateur postgres n'étant pas possible en non-interactif nous avons créé un fichier [changer_mdp.sql](./scripts/odoo/changer_mdp.sql) dans lequel nous insérons le nom du client pour l'utiliser comme mot de passe. Il s'agit de la solution que nous avons trouvé pour controurner ce problème.
 
 Sur la machine odoo1, le fichier template du odoo.conf est modifié avec un `sed` pour y insérer le nom du client. Le template `docker-compose.yml` est aussi modifié pour y ajouter le nom du client et la version odoo.
 
@@ -122,9 +143,9 @@ En premier lieu, l'utilisateur doit entrer le nom du client pour lequel il souha
 
 Pour installer des addons odoo, nous avons aussi besoin des noms techniques des modules. L'utilisateur les entre un par un en les séparant par des espaces.
 
-Les noms techinques sont enregistrés dans une liste sur laquelle on va itérer pour installer les modules. A chaque itération le `.zip` du module est récupéré par un `wget` sur https://apps.odoo.com/loempia/download/$addon/${version}.0/$addon.zip . $addon étant le nom technique, $version étant la version odoo du client récupéré dans le fichier `$HOME/client-version` sur odoo1 grâce à un grep sur le nom du client renseigné plus tôt.
+Les noms techinques sont enregistrés dans une liste sur laquelle on va itérer pour installer les modules. A chaque itération le `.zip` du module est récupéré par un `wget` sur https://apps.odoo.com/loempia/download/<addon>/<version>.0/<addon>.zip . <addon> étant le nom technique, <version> étant la version odoo du client récupéré dans le fichier `$HOME/client-version` sur odoo1 grâce à un grep sur le nom du client renseigné plus tôt.
 
-Enfin, on relance le `docker-compose` étant tdonné que le container n'a pas été arrêté, docker se charge de faire la mise à jour sur les modifications.
+Enfin, on relance le `docker-compose` étant donné que le container n'a pas été arrêté, docker se charge de faire la mise à jour sur les modifications.
 
 Une instruction s'affiche ensuite à l'écran car l'utilisateur doit activer les addons sur l'interface web de odoo.
 
@@ -134,7 +155,7 @@ Avec le troisième choix le script [recup-sauvegardes.sh](./scripts/sauvegardes/
 
 Un `echo` demande à l'utilisateur de confirmer la récupération des sauvegardes. 
 
-Si oui, un `rsync` est lancé depuis la machine sauvegardes1 vers postgres1 pour récupérer les sauvegardes.
+Si oui, un `rsync` est lancé depuis la machine sauvegardes1 vers postgres1 pour que postgres récupére la derniere backups.
 
 Ensuite depuis la machine postgres1 la commande `psql` est utilisée avec l'option `-f <fichier-de-sauvegardes>` pour restaurer les données sur postgres. 
 
