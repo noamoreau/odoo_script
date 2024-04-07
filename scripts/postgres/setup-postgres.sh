@@ -17,7 +17,7 @@ ssh postgres1 "echo user|sudo -S sed -i 's/local   all             all          
 ssh postgres1 "echo user|sudo -S sed -i -e 's/#listen_addresses/listen_addresses/g' -e 's/localhost/*/g' /etc/postgresql/15/main/postgresql.conf"
 ssh postgres1 "echo root|su --login -c 'systemctl restart postgresql'"
 
-echo -e "${jaune_clair}Entrez le nouveau mot de passe de l\'utilisateur postgres\nEntrez le mot de passe de root${reset}"
+echo -e "${bleu_clair}Entrez le nouveau mot de passe de l\'utilisateur postgres\nEntrez le mot de passe de root${reset}"
 ssh postgres1 "su --login -c 'passwd postgres'"
 
 #ssh postgres1 "su --login postgres -c 'pg_dump > backup-odoo.sql'"
@@ -28,5 +28,3 @@ deuxiemecron="1 0 * * * rsync postgres@10.42.124.2:/var/lib/postgresql/backup /h
 ssh sauvegardes1 '(crontab -l 2>/dev/null; echo "'"$deuxiemecron"'"| crontab -)'
 
 echo -e "${bleu_clair}Configuration de postgres1 terminée${reset}"
-
-

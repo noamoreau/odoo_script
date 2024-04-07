@@ -19,7 +19,7 @@ done
 if ([ "$reponse" == "y" ])
 then
     echo -e "${bleu_clair}Génération de la paire de clefs SSH${reset}"
-    ssh-keygen -C "clef-ssh-dattier"
+    ssh-keygen
 fi
 
 ssh-copy-id dattier.iutinfo.fr
@@ -27,16 +27,16 @@ ssh-copy-id dattier.iutinfo.fr
 scp ../dattier/creation-vm.sh dattier.iutinfo.fr:~/.
 ssh dattier.iutinfo.fr 'chmod u+x creation-vm.sh && ./creation-vm.sh'
 
-liste_fichier_ip=("odoo1" "postgres1" "sauvegardes1")
+liste_nom_machines=("odoo1" "postgres1" "sauvegardes1")
 
 for i in 0 1 2
 do
-  ip=$(ssh dattier.iutinfo.fr 'cat ip_'${liste_fichier_ip[$i]})
-  #ssh dattier.iutinfo.fr 'echo ip_${liste_fichier_ip[$i]}'
+  ip=$(ssh dattier.iutinfo.fr 'cat ip_'${liste_nom_machines[$i]})
+  #ssh dattier.iutinfo.fr 'echo ip_${liste_nom_machines[$i]}'
   
-  if [[ $(grep -o -i "host ${liste_fichier_ip[$i]}" $HOME/.ssh/config ) ]]
+  if [[ $(grep -o -i "host ${liste_nom_machines[$i]}" $HOME/.ssh/config ) ]]
   then
-    nb=$(expr $(wc -l $HOME/.ssh/config | cut -d " " -f 1) - $(grep -o -n -i "host ${liste_fichier_ip[$i]}" $HOME/.ssh/config | cut -d : -f 1))
+    nb=$(expr $(wc -l $HOME/.ssh/config | cut -d " " -f 1) - $(grep -o -n -i "host ${liste_nom_machines[$i]}" $HOME/.ssh/config | cut -d : -f 1))
     nb=$((nb+1))
     fichier=$(tail -n $nb $HOME/.ssh/config)
     alias=""
@@ -48,7 +48,7 @@ do
     done <<< "$fichier"
     alias=${alias%?}
 
-    echo -e "${jaune_clair}Un alias pour ${liste_fichier_ip[$i]} a été détecté souhaitez-vous le remplacer ? (y/n)${reset}" 
+    echo -e "${jaune_clair}Un alias pour ${liste_nom_machines[$i]} a été détecté souhaitez-vous le remplacer ? (y/n)${reset}" 
     echo $alias | tr "@" "\n" | tr "&" "\t" 
     read reponse
     while([ "$reponse" != "y" ] && [ "$reponse" != "n" ])
@@ -56,22 +56,22 @@ do
     done
     if ([ "$reponse" == "y" ])
     then
-        cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_fichier_ip[$i]}@\&Hostname $ip\@\&user user@\&ProxyJump dattier@\&LocalForward localhost:9090 localhost:9090@\&LocalForward localhost:9091 localhost:9091@|g" | tr "@" "\n" | tr "&" "\t" > truc
+        cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_nom_machines[$i]}@\&Hostname $ip\@\&user user@\&ProxyJump dattier@\&LocalForward localhost:9090 localhost:9090@\&LocalForward localhost:9091 localhost:9091@|g" | tr "@" "\n" | tr "&" "\t" > truc
         cp truc ~/.ssh/config
     fi
   else
-    echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier\n\tLocalForward localhost:9090 localhost:9090\n\tLocalForward localhost:9091 localhost:9091" >> ~/.ssh/config
+    echo -e "\nHost ${liste_nom_machines[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier\n\tLocalForward localhost:9090 localhost:9090\n\tLocalForward localhost:9091 localhost:9091" >> ~/.ssh/config
   fi
 
-  ./sshpass -p user ssh-copy-id -o "StrictHostKeyChecking no" "${liste_fichier_ip[$i]}"
-  echo -e "${jaune_clair}Configuration de base de la vm ${liste_fichier_ip[$i]}${reset}"
-  ssh "${liste_fichier_ip[$i]}" 'echo root | su -c "apt-get -y update && apt -y full-upgrade && apt-get install -y sudo"'
-  ssh "${liste_fichier_ip[$i]}" 'echo root |su --login -c "adduser user sudo"'
-  ssh "${liste_fichier_ip[$i]}" 'echo root |su --login -c "reboot"'
-  echo -e "${bleu_clair}Redémarrage de la vm ${liste_fichier_ip[$i]} après installation des commandes de base${reset}"
+  ./sshpass -p user ssh-copy-id -o "StrictHostKeyChecking no" "${liste_nom_machines[$i]}"
+  echo -e "${jaune_clair}Configuration de base de la vm ${liste_nom_machines[$i]}${reset}"
+  ssh "${liste_nom_machines[$i]}" 'echo root | su -c "apt-get -y update && apt -y full-upgrade && apt-get install -y sudo"'
+  ssh "${liste_nom_machines[$i]}" 'echo root |su --login -c "adduser user sudo"'
+  ssh "${liste_nom_machines[$i]}" 'echo root |su --login -c "reboot"'
+  echo -e "${bleu_clair}Redémarrage de la vm ${liste_nom_machines[$i]} après installation des commandes de base${reset}"
   sleep 10s
-  ssh "${liste_fichier_ip[$i]}" "echo root |su --login -c 'hostnamectl set-hostname ${liste_fichier_ip[$i]}'"
-  ssh "${liste_fichier_ip[$i]}" "echo user |sudo -S sed -i 's/iface enp0s3 inet dhcp/iface enp0s3 inet static\n\taddress 10.42.124.$(($i+1))\/16\n\tgateway 10.42.0.1/g' /etc/network/interfaces && echo user|sudo -S reboot"
+  ssh "${liste_nom_machines[$i]}" "echo root |su --login -c 'hostnamectl set-hostname ${liste_nom_machines[$i]}'"
+  ssh "${liste_nom_machines[$i]}" "echo user |sudo -S sed -i 's/iface enp0s3 inet dhcp/iface enp0s3 inet static\n\taddress 10.42.124.$(($i+1))\/16\n\tgateway 10.42.0.1/g' /etc/network/interfaces && echo user|sudo -S reboot"
   sed -i s/$ip/10.42.124.$(($i+1))/g ~/.ssh/config
 done
 
