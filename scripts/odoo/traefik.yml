@@ -6,7 +6,7 @@ api:
 
 providers:
   docker:
-    defaultRule: "Host(`{{ .ContainerName }}.tilleul01.iutinfo`)"
+    defaultRule: "Host(`{{ .ContainerName }}.tilleul01.localhost`)"
     endpoint: "unix:///var/run/docker.sock"
     watch: true
     exposedByDefault: false
@@ -29,4 +29,3 @@ entryPoints:
           scheme: https
   https:
     address: ":443"
-EOF

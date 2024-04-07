@@ -59,7 +59,7 @@ do
         cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_fichier_ip[$i]}@&Hostname $ip\@&user user@&ProxyJump dattier@|g" | tr "@" "\n" | tr "&" "\t" > ~/.ssh/config
     fi
   else
-    echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier" >> ~/.ssh/config
+    echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier\n\tLocalForward localhost:9090 localhost:9090\n\tLocalForward localhost:9091 localhost:9091" >> ~/.ssh/config
   fi
 
   ./sshpass -p user ssh-copy-id -o "StrictHostKeyChecking no" "${liste_fichier_ip[$i]}"
@@ -76,6 +76,9 @@ done
 
 chmod u+x ../postgres/setup-postgres.sh
 ../postgres/setup-postgres.sh
+
+chmod u+x ../odoo/setup-odoo.sh
+../odoo/setup-odoo.sh
 
 chmod u+x cleanup.sh
 ./cleanup.sh

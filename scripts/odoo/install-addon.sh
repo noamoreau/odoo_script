@@ -6,7 +6,7 @@ bleu_clair=${esc}'[94m'
 jaune_clair=${esc}'[33m'
 reset=${esc}'[0m'
 
-
+echo $1
 echo -e "${jaune_clair}Entrez les noms techniques séparé par un espace${reset}" 
 read liste_addon
 version=$(ssh odoo1 "grep $1 "'$HOME/client-version | cut -d : -f 2')
