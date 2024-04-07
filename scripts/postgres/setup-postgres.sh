@@ -21,11 +21,9 @@ echo -e "${jaune_clair}Entrez le nouveau mot de passe de l\'utilisateur postgres
 ssh postgres1 "su --login -c 'passwd postgres'"
 
 #ssh postgres1 "su --login postgres -c 'pg_dump > backup-odoo.sql'"
-today=$(date '+%Y-%m-%d')
-premiercron="0 0 * * * pg_dumpall > /var/lib/postgresql/$today"
-deuxiemecron="1 0 * * * rsync postgres@10.42.124.2:/var/lib/postgresql/$today /home/user/$today"
-
-ssh postgres1 '(crontab -l 2>/dev/null; echo "'"$premiercron"'" | crontab -)'
+premiercron="0 0 * * * pg_dumpall > /var/lib/postgresql/backup"
+deuxiemecron="1 0 * * * rsync postgres@10.42.124.2:/var/lib/postgresql/backup /home/user/backup"
+../physique/sshpass -p postgres ssh -J dattier postgres@10.42.124.2 '(crontab -l 2>/dev/null; echo "'"$premiercron"'" | crontab -)'
 
 ssh sauvegardes1 '(crontab -l 2>/dev/null; echo "'"$deuxiemecron"'"| crontab -)'
 

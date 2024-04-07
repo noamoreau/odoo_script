@@ -24,7 +24,7 @@ do
       ;;
     3)
       echo sauvegardes
-      ./recup-sauvegardes.sh
+      ../sauvegardes/recup-sauvegardes.sh
       break
       ;;
     4)

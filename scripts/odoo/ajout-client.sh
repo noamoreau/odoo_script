@@ -15,10 +15,16 @@ read versionodoo
 
 clientversion="$nomclient:$versionodoo"
 
+
+
 ssh odoo1 "echo $clientversion >> "'$HOME/client-version'
 
 ssh postgres1 "echo user|sudo -S sed -i 's/# IPv4 local connections:/# IPv4 local connections:\nhost    postgres             '$nomclient'             odoo            scram-sha-256\nhost    '$nomclient'             '$nomclient'             odoo            scram-sha-256/g' /etc/postgresql/15/main/pg_hba.conf"
-ssh postgres1 "su --login postgres -c 'createuser --pwprompt --createdb --no-superuser --no-createrole $nomclient'"
+ssh postgres1 "echo postgres|su --login postgres -c 'createuser --createdb --no-superuser --no-createrole $nomclient'"
+sed "s/@/$nomclient/g"  ../odoo/template_changer_mdp.sql > ../odoo/changer_mdp.sql
+scp ../odoo/changer_mdp.sql postgres1:.
+ssh postgres1 "echo user |sudo -S cp changer_mdp.sql /var/lib/postgresql/changer_mdp.sql"
+ssh postgres1 "echo postgres|su - postgres -c 'psql -f changer_mdp.sql'"
 ssh postgres1 "echo user|sudo -S systemctl restart postgresql"
 
 sed "s/@/$nomclient/g" ../odoo/template_odoo.conf > ../odoo/odoo.conf 

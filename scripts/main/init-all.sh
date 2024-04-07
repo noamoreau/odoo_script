@@ -56,7 +56,8 @@ do
     done
     if ([ "$reponse" == "y" ])
     then
-        cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_fichier_ip[$i]}@&Hostname $ip\@&user user@&ProxyJump dattier@|g" | tr "@" "\n" | tr "&" "\t" > ~/.ssh/config
+        cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_fichier_ip[$i]}@\&Hostname $ip\@\&user user@\&ProxyJump dattier@\&LocalForward localhost:9090 localhost:9090@\&LocalForward localhost:9091 localhost:9091@|g" | tr "@" "\n" | tr "&" "\t" > truc
+        cp truc ~/.ssh/config
     fi
   else
     echo -e "\nHost ${liste_fichier_ip[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier\n\tLocalForward localhost:9090 localhost:9090\n\tLocalForward localhost:9091 localhost:9091" >> ~/.ssh/config
@@ -77,8 +78,13 @@ done
 chmod u+x ../postgres/setup-postgres.sh
 ../postgres/setup-postgres.sh
 
+chmod u+x ../sauvegardes/setup-sauvegardes.sh
+../sauvegardes/setup-sauvegardes.sh
+
 chmod u+x ../odoo/setup-odoo.sh
 ../odoo/setup-odoo.sh
+
+
 
 chmod u+x cleanup.sh
 ./cleanup.sh
