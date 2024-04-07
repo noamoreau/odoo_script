@@ -31,6 +31,8 @@ Commençons par le dernier choix qui lance le script [init-all.sh](./scripts/mai
 
 #### init-all.sh
 
+![Exécution du script](./img/init-all.png)
+
 ##### Clef ssh
 Le script demande si l'utilisateur souhaite une nouvelle clef. Si oui `ssh-keygen` est lancé.
 
@@ -119,6 +121,8 @@ On copie le template du docker-compose de odoo pour me script [ajout-client.sh](
 
 ##### ajout-client.sh
 
+![Exécution du script](./img/ajout-client.png)
+
 Le script [ajout-client.sh](./scripts/odoo/ajout-client.sh) est lancé. Le script concerne les machine postgres1 et odoo1.
 
 L'utilisateur doit d'abord renseigner le nom du client et la version d'odoo à installer. Ces information sont respectivement stockées dans des variables mais aussi dans le fichier `$HOME/client-version` utile à l'installation de traefik et des addons odoo. 
@@ -136,6 +140,12 @@ Enfin `docker-compose up` pour créer le container.
 Le deuxième choix du menu permet de lancer le script [ajout-client.sh](./scripts/odoo/ajout-client.sh) décrit plus haut. 
 
 ### Installer des addons
+
+En cas de réussite   
+![Exécution du script réussite](./img/addons-reussi.png)
+
+En cas d'échec  
+![Exécution du script échec](./img/addons-echec.png)
 
 Dans le cas du premier choix, le script [install-addons.sh](./scripts/odoo/install-addons.sh) est lancé. Le script concerne la machine odoo1.
 
