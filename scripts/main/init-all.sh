@@ -56,6 +56,8 @@ do
     then
         cat ~/.ssh/config |tr "\n" "@" | tr "\t" "&" | sed "s|$alias|@Host ${liste_nom_machines[$i]}@\&Hostname $ip\@\&user user@\&ProxyJump dattier@\&LocalForward localhost:9090 localhost:9090@\&LocalForward localhost:9091 localhost:9091@|g" | tr "@" "\n" | tr "&" "\t" > config
         cp config ~/.ssh/config 1>/dev/null 2>&1
+    else
+      exit 0
     fi
   else
     echo -e "\nHost ${liste_nom_machines[$i]}\n\tHostname $ip\n\tuser user\n\tProxyJump dattier\n\tLocalForward localhost:9090 localhost:9090\n\tLocalForward localhost:9091 localhost:9091" >> ~/.ssh/config
