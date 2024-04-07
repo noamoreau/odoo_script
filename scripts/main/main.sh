@@ -12,18 +12,16 @@ do
   read choix
   case $choix in
     1)
-      echo -e  "${jaune_clair} Entrez le nom du client ${reset}"
+      echo -e  "${jaune_clair}Entrez le nom du client ${reset}"
       read client
       ../odoo/install-addon.sh $client
       break
       ;;
     2)
-      echo hoho
       ../odoo/ajout-client.sh
       break
       ;;
     3)
-      echo sauvegardes
       ../sauvegardes/recup-sauvegardes.sh
       break
       ;;
@@ -32,7 +30,6 @@ do
       read confirmation
       if [[ $confirmation == "2" ]]
       then
-        echo olala
         ./init-all.sh
         break
       else

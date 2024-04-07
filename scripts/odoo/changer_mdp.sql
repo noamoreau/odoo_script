@@ -1,1 +1,1 @@
-ALTER ROLE pouet WITH PASSWORD 'pouet';
+ALTER ROLE toto WITH PASSWORD 'toto';
