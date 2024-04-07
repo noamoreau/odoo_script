@@ -74,16 +74,69 @@ Sur la machine postgres1.
 
 Installation de rsync.
 
+Modification des fichiers `pg_hba.conf` et `postgresql.conf` avec un `sed` pour autoriser les connexions de l'extérieur.
+
+Modification du mot de passe (`passwd`) de l'utilisateur postgres pour éviter des erreur par la suite.
+
+Configuration du premier `crontab` sur la machine postgres1 pour créer le `dump` de la base de données. Puis configuration du second sur la machine sauvegardes1 pour récupérer le `dump`. Le crontab est géré de manière non-interactive en redirigeant l'erreur "no crontab for postgres" vers `/dev/null`.
+
+`setup-postgres.sh` est fini `init-all.sh` reprend la main et lance `setup-sauvegardes.sh`.
+
+#### setup-sauvegardes.sh
+
+Sur la machine sauvegardes1.
+
+`rsync` est installé.
+
+Puis une clef est générée et partagée sur la machine postgres1 pour permettre le rsync.
+
+`setup-sauvegardes.sh` est fini `init-all.sh` reprend la main et lance [setup-odoo.sh](./scripts/odoo/setup-odoo.sh)
+
 #### setup-odoo.sh
+
+
+
+##### ajout-client.sh
+
+Le script [ajout-client.sh](./scripts/odoo/ajout-client.sh) est lancé. Le script concerne les machine postgres1 et odoo1.
+
+L'utilisateur doit d'abord renseigner le nom du client et la version d'odoo à installer. Ces information sont respectivement stockées dans des variables mais aussi dans le fichier `$HOME/client-version` utile à l'installation de traefik et des addons odoo. 
+
+Sur postrges1, un nouvel utilisateur au nom du client est créé en l'ajoutant au fichier `pg_hba.conf` et en le créant sur psql. Ajouter le mot de passe d'un utilisateur postgres n'étant pas possible en non-interactif nous avons créé un fichier [changer_mdp.sql](./scripts/odoo/changer_mdp.sql) dans lequel nous insérons le nom du client pour l'utiliser comme mot de passe. Il s'agit de la solution que nous avons trouvé pour controurner ce problème.
+
+Sur la machine odoo1, le fichier template du odoo.conf est modifié avec un `sed` pour y insérer le nom du client. Le template `docker-compose.yml` est aussi modifié pour y ajouter le nom du client et la version odoo.
+
+Le dossier `~/nomclient/addons` est créé pour éventuellement ajouter des addons.
+
+Enfin `docker-compose up` pour créer le container.
 
 ### Ajouter un client
 
-Le deuxième choix du menu permet de lancer le script [ajout-client.sh](./scripts/odoo/ajout-client.sh) décrit plus haut.
+Le deuxième choix du menu permet de lancer le script [ajout-client.sh](./scripts/odoo/ajout-client.sh) décrit plus haut. 
 
 ### Installer des addons
 
+Dans le cas du premier choix, le script [install-addons.sh](./scripts/odoo/install-addons.sh) est lancé. Le script concerne la machine odoo1.
+
+En premier lieu, l'utilisateur doit entrer le nom du client pour lequel il souhaite installer des addons.
+
+Pour installer des addons odoo, nous avons aussi besoin des noms techniques des modules. L'utilisateur les entre un par un en les séparant par des espaces.
+
+Les noms techinques sont enregistrés dans une liste sur laquelle on va itérer pour installer les modules. A chaque itération le `.zip` du module est récupéré par un `wget` sur https://apps.odoo.com/loempia/download/$addon/${version}.0/$addon.zip . $addon étant le nom technique, $version étant la version odoo du client récupéré dans le fichier `$HOME/client-version` sur odoo1 grâce à un grep sur le nom du client renseigné plus tôt.
+
+Enfin, on relance le `docker-compose` étant tdonné que le container n'a pas été arrêté, docker se charge de faire la mise à jour sur les modifications.
+
+Une instruction s'affiche ensuite à l'écran car l'utilisateur doit activer les addons sur l'interface web de odoo.
+
 ### Récupérer les données sur la sauvegarde quotidienne
 
+Avec le troisième choix le script [recup-sauvegardes.sh](./scripts/sauvegardes/recup-sauvegardes.sh) est lancé.
+
+Un `echo` demande à l'utilisateur de confirmer la récupération des sauvegardes. 
+
+Si oui, un `rsync` est lancé depuis la machine sauvegardes1 vers postgres1 pour récupérer les sauvegardes.
+
+Ensuite depuis la machine postgres1 la commande `psql` est utilisée avec l'option `-f <fichier-de-sauvegardes>` pour restaurer les données sur postgres. 
 
 ## Nos choix
 
@@ -91,6 +144,8 @@ Nous souhaitions initialement envoyer aux machines les scripts les concernant ma
 
 Afin d'éviter au maximum les interventions de l'utilisateur nous avons décidé d'utiliser `sshpass`. Installer un programme n'étant pas possible sur nos sessions nous avons fais en sorte que le script récupère le code source et le compile. 
 
-> **Note** : pour des raisons nous dépassant la compilation peut échouer selon la session. Elle fonctionne sur la session à Noa mais pas celle d'Elise.
+> **Note** : pour des raisons nous dépassant la compilation peut échouer selon la session. Elle fonctionne sur la session à Noa mais pas celle d'Elise. C'est pour cela que le binaire est présent sur le dépôt git.
 
 Il y a un docker odoo par client car cela leur permet d'avoir plusieurs base de données s'ils veulent. Nous avons fait ce choix suite à notre travail sur Odoo en management des SI où nous manipulions plusieurs bases pour plusieurs scénarios.
+
+A l'origine nous voulions créer les fichier [odoo.conf](./scripts/odoo/odoo.conf), [docker-compose.yml](./scripts/odoo/template-docker-compose-odoo.yml) avec une redirection EOF mais n'arrivant pas à faire fonctionner la rediction nous avons préféré employer des "templates" ajoutés dans le dépôt. 

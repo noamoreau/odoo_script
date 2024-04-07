@@ -6,7 +6,6 @@ bleu_clair=${esc}'[94m'
 jaune_clair=${esc}'[33m'
 reset=${esc}'[0m'
 
-#Utile ?
 echo -e "${jaune_clair}Entrez le nom de l'entreprise du client avec des _ à la place des espaces${reset}"
 read nomclient
 
@@ -14,7 +13,6 @@ echo -e "${jaune_clair}Entrez la version odoo, elle est comprise entre 8 et 17${
 read versionodoo
 
 clientversion="$nomclient:$versionodoo"
-
 
 
 ssh odoo1 "echo $clientversion >> "'$HOME/client-version'

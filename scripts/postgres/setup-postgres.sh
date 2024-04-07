@@ -23,7 +23,7 @@ ssh postgres1 "su --login -c 'passwd postgres'"
 #ssh postgres1 "su --login postgres -c 'pg_dump > backup-odoo.sql'"
 premiercron="0 0 * * * pg_dumpall > /var/lib/postgresql/backup"
 deuxiemecron="1 0 * * * rsync postgres@10.42.124.2:/var/lib/postgresql/backup /home/user/backup"
-../physique/sshpass -p postgres ssh -J dattier postgres@10.42.124.2 '(crontab -l 2>/dev/null; echo "'"$premiercron"'" | crontab -)'
+../main/sshpass -p postgres ssh -J dattier postgres@10.42.124.2 '(crontab -l 2>/dev/null; echo "'"$premiercron"'" | crontab -)'
 
 ssh sauvegardes1 '(crontab -l 2>/dev/null; echo "'"$deuxiemecron"'"| crontab -)'
 
