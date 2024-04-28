@@ -1,3 +1,6 @@
+# Présentation
+Nous incarnons un fournisseur de l'ERP Odoo. Le projet comporte trois machines virtuelles pour Odoo, Postgres et le back-up des données. Odoo est géré avec Docker, chaque client possède un container. Les scripts écrit en bash font usage de SSH et ssh-pass.
+
 # Documentation des scripts
 
 ## Organisation des fichiers
